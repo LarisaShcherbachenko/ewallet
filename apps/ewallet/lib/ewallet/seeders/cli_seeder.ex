@@ -26,8 +26,9 @@ defmodule EWallet.Seeder.CLI do
   Press Enter to start seeding or `Ctrl+C` twice to exit.
   """
 
-  def run(app_name) do
-    mods = Seeder.gather_seeds(app_name)
+  def run(app_name), do: run(app_name, "seeds")
+  def run(app_name, seed_name) do
+    mods = Seeder.gather_seeds(app_name, seed_name)
 
     args =
       mods
@@ -37,11 +38,11 @@ defmodule EWallet.Seeder.CLI do
     IO.puts("\n-----\n")
     IO.gets(@confirm_message)
 
-    run(mods, args)
+    run_seeds(mods, args)
   end
 
-  defp run([], args), do: args
-  defp run([mod | t], args) do
+  defp run_seeds([], args), do: args
+  defp run_seeds([mod | t], args) do
     case Keyword.get(mod.seed, :run_banner) do
       nil -> nil
       t -> CLI.print("#{t}")

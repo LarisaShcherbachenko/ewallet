@@ -1,5 +1,6 @@
 defmodule EWalletDB.Repo.Seeds.UserSeed do
   alias EWalletDB.Helpers.Crypto
+  alias EWalletDB.User
 
   @argsline_desc """
   This email and password combination is required for logging into the admin panel.
@@ -19,6 +20,35 @@ defmodule EWalletDB.Repo.Seeds.UserSeed do
     ]
   end
 
-  def run(_writer, _args) do
+  def run(writer, args) do
+    data = %{
+      email: args[:admin_email],
+      password: args[:admin_password],
+      metadata: %{},
+    }
+
+    case User.get_by_email(data.email) do
+      nil ->
+        case User.insert(data) do
+          {:ok, user} ->
+            writer.success("""
+              ID       : #{user.id}
+              Email    : #{user.email}
+              Password : #{user.password}
+            """)
+          {:error, changeset} ->
+            writer.error("  Admin Panel user #{data.email} could not be inserted:")
+            writer.print_errors(changeset)
+          _ ->
+            writer.error("  Admin Panel user #{data.email} could not be inserted:")
+            writer.error("  Unknown error.")
+        end
+      %User{} = user ->
+        writer.warn("""
+          ID       : #{user.id}
+          Email    : #{user.email}
+          Password : <hidden>
+        """)
+    end
   end
 end
